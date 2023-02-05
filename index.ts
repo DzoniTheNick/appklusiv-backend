@@ -1,9 +1,11 @@
 import * as dotenv from 'dotenv';
-import express, { Express } from 'express';
-import cors from 'cors'; 
+import express = require('express');
+import { Express } from 'express';
+import cors = require('cors');
 import mongoose from 'mongoose';
 import { hash } from 'bcryptjs';
-import jwt, { Secret } from 'jsonwebtoken';
+import jwt = require('jsonwebtoken');
+import { Secret } from 'jsonwebtoken';
 
 import User from './database/models/user.model';
 import IUser from './util/interfaces/user';
