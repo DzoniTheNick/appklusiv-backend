@@ -44,7 +44,7 @@ const main = async () => {
             res.json({status: 'ok', token: jwtToken});
         }catch (err) {
             console.log(`Error while saving new user: ${err}`);
-            res.json({status: 'error', err: err});
+            res.json({status: 'error', err: `${err}`});
         }
     });
     
