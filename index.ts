@@ -21,6 +21,10 @@ const main = async () => {
     await mongoose.connect(process.env.CONNECTION_STRING as string);
     mongoose.set('strictQuery', false);
 
+    server.get('/test', (req, res) => {
+        res.send('Works');
+    });
+
     server.post('/user/register', async (req, res) => {
         try {
             const newUser: IUser = req.body;
