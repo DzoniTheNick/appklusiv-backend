@@ -2,13 +2,14 @@ import * as dotenv from 'dotenv';
 import express = require('express');
 import { Express } from 'express';
 import cors = require('cors');
-import mongoose from 'mongoose';
-import { hash } from 'bcryptjs';
+import mongoose, {MongooseError} from 'mongoose';
+import { hash, compare } from 'bcryptjs';
 import jwt = require('jsonwebtoken');
 import { Secret } from 'jsonwebtoken';
 
 import User from './database/models/user.model';
 import IUser from './util/interfaces/user';
+import IUserModal from './util/interfaces/userModal';
 
 dotenv.config();
 
@@ -43,7 +44,7 @@ const main = async () => {
             console.log('New user has been added');
             res.json({status: 'ok', token: jwtToken});
         }catch (err) {
-            console.log(`Error while saving new user: ${err}`);
+            console.error(`Error while saving new user: ${err}`);
             res.json({status: 'error', err: `${err}`});
         }
     });
@@ -52,24 +53,28 @@ const main = async () => {
         try {
             const user: IUser = req.body;
 
-            const specificUser = await User.find({
-                email: user.email,
-                password: await hash(user.password, 10)
+            const specificUser: IUserModal | null = await User.findOne({
+                email: user.email
             });
-            
-            const jwtToken = jwt.sign({
-                user: specificUser
-            }, process.env.SECRET as Secret);
 
-            if(specificUser.length === 0){
-                res.json({status: 'error', token: false});
-            }else { 
-                res.json({status: 'ok', token: jwtToken});
+            if(!specificUser) {
+                res.json({status: 'no_user', token: false});
+            }else {
+                if(await compare(user.password, specificUser?.password as string)) {
+                    const jwtToken = jwt.sign({
+                        user: specificUser
+                    }, process.env.SECRET as Secret);
+                    
+                    console.log(jwtToken);
+    
+                    res.json({status: 'ok', token: jwtToken});
+                }else {
+                    res.json({status: 'wrong_pass', token: false});
+                }
             }
         }catch (err) {
-            console.log(err);
             console.error(`Error while retrieving specific user: ${err}`);
-            res.json({status: 'error', token: false});
+            res.json({status: 'error', error: `${err}`});
         }
     });
 
